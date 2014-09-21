@@ -17,6 +17,7 @@ cout << s1 << " \u2247 " << r << printm(" ") << std::endl
 cout << s1 << " = " << r << std::endl
 
 int main(int argc, char *argv[]) {
+	cout << "sizeof(long) = " << sizeof(long) << std::endl;
 	if (argc > 1) {
 		Mod::set_modulus(atol(argv[1]));
 		cout << "Set modulus to " << argv[1] << std::endl;
