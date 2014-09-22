@@ -9,6 +9,7 @@
 
 using namespace std;
 
+#define _MOD(a,m) (((a%m) + m)%m) // correct mod operator
 #define printm(a) a"(mod " << Mod::get_modulus() << ")"
 
 #define printcongr(s1,r)\
@@ -70,7 +71,7 @@ int old_main(int argc, char *argv[]) {
 	return 0;
 }
 
-int main(int argc, char *argv[]) {
+int main2(int argc, char *argv[]) {
 	if (argc < 2)
 		exit(-1);
 	FILE *file = fopen(argv[1], "r");
@@ -94,5 +95,28 @@ int main(int argc, char *argv[]) {
 	printf("%d inverses in %ld ns, or %.8lf s\n",
 		i, diff, diff / 1000000000.0);
 	fclose(file);
+	return 0;
+}
+
+int main(int argc, char *argv[]) {
+	Mod::set_modulus(9182237390125665823L);
+	
+	long iter;
+	int i;
+	struct timespec start, end;
+
+	iter = argc > 1 ? atol(argv[1]) : 100000;
+	clock_gettime(CLOCK_MONOTONIC, &start);
+	for (i=0; i<iter; ++i) {
+		Mod a(7182237390125665823L), b(8182237390125665823L);
+		a.pwr(b.val());
+		if (i == 1)
+			printeq(a << "^" << b.val() << " mod "
+				<< Mod::get_modulus(), a.pwr(b.val()));
+	}
+	clock_gettime(CLOCK_MONOTONIC, &end);
+	long diff = end.tv_nsec - start.tv_nsec;
+	printf("%d inverses in %ld ns, or %.8lf s\n",
+		i, diff, diff / 1000000000.0);
 	return 0;
 }

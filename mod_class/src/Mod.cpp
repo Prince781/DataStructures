@@ -1,7 +1,7 @@
 #include "Mod.h"
 #include <cstdlib>
 
-#define _MOD(a,m) (((a%m) + m)%m) // correct mod operator
+#define _MOD(a,m) ((a >= m) ? ((a%m) + m)%(m) : a) // correct mod operator
 long Mod::modulus = 17;
 
 Mod::Mod(long t) : x(_MOD(t, Mod::modulus)) { }
@@ -41,7 +41,7 @@ Mod Mod::operator-(void) const {
 Mod Mod::pwr(long e) const {
 	long b;
 	Mod x_new(0);
-	unsigned long p;
+	long p;
 
 	if (e < 0) {
 		x_new = inv(x);
@@ -51,7 +51,7 @@ Mod Mod::pwr(long e) const {
 	b = x;	// assumption that x == x mod C already
 	if (e == 1)
 		return x_new;
-	for (p=1; (p<<=1) && p <= e; ) {
+	for (p=1; p < (p<<=1) && p <= e; ) {
 		b = _MOD(b*b, Mod::modulus);
 		if (e & p) x_new *= b;
 	}
