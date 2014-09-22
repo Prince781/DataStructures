@@ -4,7 +4,7 @@
 # Princeton Ferro
 
 CXX=g++
-CXXFLAGS=-g -O0
+CXXFLAGS=-O3
 BIN=mod
 
 all: main.cpp Mod.cpp Mod.h

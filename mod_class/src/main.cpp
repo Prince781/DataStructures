@@ -4,6 +4,10 @@
 // Princeton Ferro
 #include "Mod.h"
 #include <cstdlib>
+#include <cstdio>
+#include <ctime>
+
+using namespace std;
 
 #define printm(a) a"(mod " << Mod::get_modulus() << ")"
 
@@ -16,7 +20,7 @@ cout << s1 << " \u2247 " << r << printm(" ") << std::endl
 #define printeq(s1,r)\
 cout << s1 << " = " << r << std::endl
 
-int main(int argc, char *argv[]) {
+int old_main(int argc, char *argv[]) {
 	cout << "sizeof(long) = " << sizeof(long) << std::endl;
 	if (argc > 1) {
 		Mod::set_modulus(atol(argv[1]));
@@ -63,5 +67,32 @@ int main(int argc, char *argv[]) {
 	cin >> power;
 	printeq(a << "^" << power, a.pwr(power));
 
+	return 0;
+}
+
+int main(int argc, char *argv[]) {
+	if (argc < 2)
+		exit(-1);
+	FILE *file = fopen(argv[1], "r");
+
+	long a, m;
+	int i = 0;
+	struct timespec start, end;
+	clock_gettime(CLOCK_MONOTONIC, &start);
+	while (fscanf(file, "%ld %ld", &a, &m) != EOF) {
+		Mod::set_modulus(m);
+		Mod n(a);
+		if (n * n.pwr(-1) != 1) {
+			printf("%ld (mod %ld) has inverse %ld\n", n.val(),
+				m, n.pwr(-1).val());
+			return 1;
+		}
+		++i;
+	}
+	clock_gettime(CLOCK_MONOTONIC, &end);
+	long diff = end.tv_nsec - start.tv_nsec;
+	printf("%d inverses in %ld ns, or %.8lf s\n",
+		i, diff, diff / 1000000000.0);
+	fclose(file);
 	return 0;
 }

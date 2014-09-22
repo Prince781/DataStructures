@@ -49,13 +49,14 @@ Mod Mod::pwr(long e) const {
 	} else
 		x_new = e&1 ? x : 1;
 	b = x;	// assumption that x == x mod C already
-
+	if (e == 1)
+		return x_new;
 	for (p=1; (p<<=1) && p <= e; ) {
 		b = _MOD(b*b, Mod::modulus);
 		if (e & p) x_new *= b;
 	}
 
-	return Mod(x_new);
+	return x_new;
 }
 
 long Mod::val(void) const {
@@ -137,6 +138,9 @@ Mod Mod::inv(long r0) { // use egcd method and return x in (r0)x + (mod)y = 1
 	long p0, p1, temp;
 	long a, b;
 
+	if (r0 == 0)
+		goto noinverse;
+
 	a = Mod::modulus;
 	b = r0;
 	p0 = 0;
@@ -157,6 +161,7 @@ Mod Mod::inv(long r0) { // use egcd method and return x in (r0)x + (mod)y = 1
 	if (a == 1)
 		return p0 | p1;
 	else {
+	noinverse:
 		cout << "no inverse found" << std::endl;
 		exit(-1);
 		return -1;
