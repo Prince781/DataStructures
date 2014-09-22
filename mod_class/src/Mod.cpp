@@ -1,8 +1,16 @@
 #include "Mod.h"
 #include <cstdlib>
+#include <inttypes.h>
+
+#define HALF_MAX (INT64_MAX>>1)
+
+#define _SMALLEST(a)\
+((a) > HALF_MAX ? ((a)-(Mod::modulus)) : (a))
 
 #define _MOD(a,m)\
-((a) < 0 || (a) > (m) ? ((a%m) + m)%(m) : a) // correct mod operator
+((a) < 0 || (a) >= (m) ? ((a%m) + m)%(m) : a) // correct mod operator
+
+#define _MAX(a,b) ((a) > (b) ? (a) : (b))
 
 long Mod::modulus = 17;
 
@@ -16,17 +24,18 @@ Mod& Mod::operator=(const Mod& m) {
 }
 
 Mod& Mod::operator+=(const Mod& m) {
-	x = _MOD(x + m.x, Mod::modulus);
+	x = _MOD(_SMALLEST(x) + _SMALLEST(m.x),
+		Mod::modulus);
 	return *this;
 }
 
 Mod& Mod::operator-=(const Mod& m) {
-	x = _MOD(x - m.x, Mod::modulus);
+	x = _MOD(_SMALLEST(x) - _SMALLEST(m.x), Mod::modulus);
 	return *this;
 }
 
 Mod& Mod::operator*=(const Mod& m) {
-	x = _MOD(x * m.x, Mod::modulus);
+	x = _MOD(_SMALLEST(x) * _SMALLEST(m.x), Mod::modulus);
 	return *this;
 }
 
@@ -75,27 +84,27 @@ long Mod::get_modulus(void) {
 }
 
 Mod operator+(const Mod& a, const Mod& b) {
-	return Mod(a.x + b.x);
+	return Mod(_SMALLEST(a.x) + _SMALLEST(b.x));
 }
 
 Mod operator+(long t, const Mod& m) {
-	return Mod(t + m.x);
+	return Mod(_SMALLEST(_MOD(t,Mod::modulus)) + _SMALLEST(m.x));
 }
 
 Mod operator-(const Mod& a, const Mod& b) {
-	return Mod(a.x - b.x);
+	return Mod(_SMALLEST(a.x) - _SMALLEST(b.x));
 }
 
 Mod operator-(long t, const Mod& m) {
-	return Mod(t - m.x);
+	return Mod(_SMALLEST(_MOD(t,Mod::modulus)) - _SMALLEST(m.x));
 }
 
 Mod operator*(const Mod& a, const Mod& b) {
-	return Mod(a.x * b.x);
+	return Mod(_SMALLEST(a.x) * _SMALLEST(b.x));
 }
 
 Mod operator*(long t, const Mod& m) {
-	return Mod(_MOD(t,Mod::modulus) * m.x);
+	return Mod(_SMALLEST(_MOD(t,Mod::modulus)) * _SMALLEST(m.x));
 }
 
 Mod operator/(const Mod& a, const Mod& b) {
@@ -153,7 +162,9 @@ Mod Mod::inv(long r0) { // use egcd method and return x in (r0)x + (mod)y = 1
 		r = a - b*q;
 		a = b;
 		b = r;
-		p0 = _MOD(p0 - p1*q, Mod::modulus);
+		p0 = _MOD(_MOD(p0,Mod::modulus) 
+			  - _MOD(_SMALLEST(p1*q),Mod::modulus),
+			Mod::modulus);
 		// swap
 		temp = p1;
 		p1 = p0;
@@ -161,7 +172,7 @@ Mod Mod::inv(long r0) { // use egcd method and return x in (r0)x + (mod)y = 1
 	} while (r != 0);
 
 	if (a == 1)
-		return p0 | p1;
+		return _MAX(p0, p1);
 	else {
 	noinverse:
 		cout << "no inverse found" << std::endl;
