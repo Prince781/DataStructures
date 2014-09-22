@@ -1,7 +1,9 @@
 #include "Mod.h"
 #include <cstdlib>
 
-#define _MOD(a,m) ((a >= m) ? ((a%m) + m)%(m) : a) // correct mod operator
+#define _MOD(a,m)\
+((a) < 0 || (a) > (m) ? ((a%m) + m)%(m) : a) // correct mod operator
+
 long Mod::modulus = 17;
 
 Mod::Mod(long t) : x(_MOD(t, Mod::modulus)) { }
