@@ -12,6 +12,9 @@
 
 #define _MAX(a,b) ((a) > (b) ? (a) : (b))
 
+static unsigned long mod_mult(unsigned long a, unsigned long b,
+	unsigned long c);
+
 long Mod::modulus = 17;
 
 Mod::Mod(long t) : x(_MOD(t, Mod::modulus)) { }
@@ -35,13 +38,12 @@ Mod& Mod::operator-=(const Mod& m) {
 }
 
 Mod& Mod::operator*=(const Mod& m) {
-	x = _MOD(_SMALLEST(x) * _SMALLEST(m.x), Mod::modulus);
+	x = mod_mult(x, m.x, Mod::modulus);
 	return *this;
 }
 
 Mod& Mod::operator/=(const Mod& m) {
-	Mod x_new(m.pwr(-1));
-	x = x_new.x;
+	x = mod_mult(x, m.pwr(-1).x, Mod::modulus);
 	return *this;
 }
 
@@ -52,18 +54,19 @@ Mod Mod::operator-(void) const {
 Mod Mod::pwr(long e) const {
 	long b;
 	Mod x_new(0);
-	long p;
+	long p, p2;
 
 	if (e < 0) {
 		x_new = inv(x);
 		e = -e;
-	} else
+	} else if (e == 0)
+		return 1;
+	  else
 		x_new = e&1 ? x : 1;
 	b = x;	// assumption that x == x mod C already
-	if (e == 1)
-		return x_new;
-	for (p=1; p < (p<<=1) && p <= e; ) {
-		b = _MOD(b*b, Mod::modulus);
+
+	for (p2=p=1; (p2 < (p<<=1)) && p <= e; p2=p) {
+		b = mod_mult(b, b, Mod::modulus);
 		if (e & p) x_new *= b;
 	}
 
@@ -100,11 +103,11 @@ Mod operator-(long t, const Mod& m) {
 }
 
 Mod operator*(const Mod& a, const Mod& b) {
-	return Mod(_SMALLEST(a.x) * _SMALLEST(b.x));
+	return Mod(mod_mult(a.x, b.x, Mod::modulus));
 }
 
 Mod operator*(long t, const Mod& m) {
-	return Mod(_SMALLEST(_MOD(t,Mod::modulus)) * _SMALLEST(m.x));
+	return Mod(mod_mult(_MOD(t,Mod::modulus), m.x, Mod::modulus));
 }
 
 Mod operator/(const Mod& a, const Mod& b) {
@@ -162,8 +165,7 @@ Mod Mod::inv(long r0) { // use egcd method and return x in (r0)x + (mod)y = 1
 		r = a - b*q;
 		a = b;
 		b = r;
-		p0 = _MOD(_MOD(p0,Mod::modulus) 
-			  - _MOD(_SMALLEST(p1*q),Mod::modulus),
+		p0 = _MOD(_MOD(p0,Mod::modulus)-mod_mult(p1,q,Mod::modulus),
 			Mod::modulus);
 		// swap
 		temp = p1;
@@ -172,11 +174,23 @@ Mod Mod::inv(long r0) { // use egcd method and return x in (r0)x + (mod)y = 1
 	} while (r != 0);
 
 	if (a == 1)
-		return _MAX(p0, p1);
+		return p0;
 	else {
 	noinverse:
 		cout << "no inverse found" << std::endl;
 		exit(-1);
 		return -1;
 	}
+}
+
+// use "Russian Peasant" multiplication to compute (a*b) mod m without overflow
+static unsigned long mod_mult(unsigned long a,
+	unsigned long b, unsigned long c) {
+	long r;
+
+	for (r=0; a!=0; a>>=1) {
+		if (a & 1) r = (r+b)%c;
+		b = (b << 1)%c;
+	}
+	return r;
 }
