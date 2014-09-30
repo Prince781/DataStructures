@@ -47,7 +47,7 @@ void init_list(Link<int> **p, int tail, int loop) {
 
 	for (n=0; n<tail; ++n) {
 		*p = new Link<int>(n);
-		(*p)->i = n;
+		(*p)->info = n;
 		(*p)->next = NULL;
 		p = &(*p)->next;
 	}
@@ -56,7 +56,7 @@ void init_list(Link<int> **p, int tail, int loop) {
 
 	for (; n<tail+loop; ++n) {
 		*p = new Link<int>(n);
-		(*p)->i = n;
+		(*p)->info = n;
 		(*p)->next = *tail_end;
 		p = &(*p)->next;
 	}
@@ -68,7 +68,8 @@ void printl(Link<int> *b, int length) {
 	printf("linked list (size=%d):\n", length);
 	for (n=0; n<length && b != NULL; ++n, b = b->next)
 		if (b->next)
-			printf("\tp_%u->next = p_%d\n", b->i, b->next->i);
+			printf("\tp_%u->next = p_%d\n", b->info,
+				b->next->info);
 		else
-			printf("\tp_%u->next = NULL\n", b->i);
+			printf("\tp_%u->next = NULL\n", b->info);
 }
