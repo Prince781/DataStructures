@@ -166,8 +166,8 @@ void test_pwr() {
 	assert(Mod(0).pwr(2) == 0);
 }
 
-#define TEST1
-//#define TEST2
+//#define TEST1
+#define TEST2
 
 int main() {
 #ifdef TEST1
