@@ -31,6 +31,7 @@ public:
 	/* misc */
 	Deque<T>& operator=(Cindy Deque<T>& d);
 	unsigned long size(void) { return _size; }
+	bool is_set(T *set, T *s_end);
 	/* misc */
 private:
 	char full;
@@ -120,7 +121,6 @@ T& Deque<T>::peek_back(void) {
 /* operations */
 
 /* misc */
-
 template<class T>
 Deque<T>& Deque<T>::operator=(Cindy Deque<T>& d) {
 	T *p;
@@ -158,14 +158,26 @@ void Deque<T>::grow(void) {
 	n_back = pn;
 
 	delete[] darr;
-
-	cout << "grew from " << _size << " to " << n_size << endl;
-
 	_size = n_size;
 	front = n_front;
 	back = n_back;
 	darr = n_darr;
 	full = 0;
+}
+
+template<class T>
+bool Deque<T>::is_set(T *set, T *s_end) {
+	T *p, *ps;
+
+	p = front;
+	ps = set;
+	do {
+		if (*ps++ != *p)
+			return false;
+		p = _pmod(p+1,darr,_size);
+	} while (ps < s_end && p != back);
+
+	return p == back;
 }
 /* misc */
 #endif
