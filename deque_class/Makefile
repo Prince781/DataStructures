@@ -1,11 +1,9 @@
 # deque - Makefile
 CXX=g++
-CXXFLAGS=-g -ggdb -O0
-BIN=deque_test
+CXXFLAGS=-std=c++11
 
 all: deque.h deque_main.cpp
-	$(CXX) $(CXXFLAGS) deque_main.cpp -o $(BIN)
+	$(CXX) $(CXXFLAGS) deque_main.cpp -o dequemain
 
-.PHONY: clean
-clean: $(BIN)
-	$(RM) $(BIN)
+anti_deques: deque.h anti_deques.cpp
+	$(CXX) $(CXXFLAGS) anti_deques.cpp -o antideques

@@ -11,15 +11,20 @@
 ((p1) < (p2) ? ((p2)+(len)-1) : ((p1)>=((p2)+(len)) ? (p2) : (p1)))
 
 #include <iostream>
+#include <iostream>
+#include <sstream>
+#include <string>
 using std::cout;
 using std::cin;
 using std::endl;
+using std::ostringstream;
+using std::string;
 
 template<class T>
 class Deque {
 public:
 	explicit Deque(unsigned long s = 16);
-	explicit Deque(Cindy Deque<T>& d);
+	Deque(Cindy Deque<T>& d);
 	/* operations */
 	void push_front(Cindy T& val);
 	void push_back(Cindy T& val);
@@ -30,8 +35,12 @@ public:
 	/* operations */
 	/* misc */
 	Deque<T>& operator=(Cindy Deque<T>& d);
-	unsigned long size(void) { return _size; }
+	unsigned long max_size(void) { return _size; }
+	unsigned long size(void);
 	bool is_set(T *set, T *s_end);
+	bool empty(void);
+	void insert(T *set, T *s_end);
+	string str(void);
 	/* misc */
 private:
 	char full;
@@ -54,11 +63,13 @@ Deque<T>::Deque(Cindy Deque<T>& d) : _size(d._size), full(d.full) {
 	darr = new T[_size];
 	front = back = darr + (d.front-d.darr);
 	p = d.front;
-	do {
-		*back = *p;
-		p = _pmod(p+1,d.darr,_size);
-		back = darr + (p-d.darr);
-	} while (p != d.back);
+
+	if (full || d.front != d.back)
+		do {
+			*back = *p;
+			p = _pmod(p+1,d.darr,_size);
+			back = darr + (p-d.darr);
+		} while (p != d.back);
 }
 
 /* operations */
@@ -166,6 +177,16 @@ void Deque<T>::grow(void) {
 }
 
 template<class T>
+unsigned long Deque<T>::size(void) {
+	T *p;
+	unsigned long c;
+
+	for (p = front, c = 0; p != back; p = _pmod(p+1,darr,_size))
+		++c;
+	return c;
+}
+
+template<class T>
 bool Deque<T>::is_set(T *set, T *s_end) {
 	T *p, *ps;
 
@@ -178,6 +199,31 @@ bool Deque<T>::is_set(T *set, T *s_end) {
 	} while (ps < s_end && p != back);
 
 	return p == back;
+}
+
+template<class T>
+bool Deque<T>::empty(void) {
+	return !full && front == back;
+}
+
+template<class T>
+void Deque<T>::insert(T *set, T *s_end) {
+	T *p;
+
+	for (p = set; p < s_end; ++p)
+		push_front(*p);
+}
+
+template<class T>
+string Deque<T>::str(void) {
+	T *p;
+	ostringstream oss;
+
+	for (p = front; p != back; p = _pmod(p+1,darr,_size))
+		if (_pmod(p+1,darr,_size) == back)
+			oss << *p;
+		else oss << *p << " ";
+	return oss.str();
 }
 /* misc */
 #endif
