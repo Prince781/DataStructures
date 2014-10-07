@@ -65,8 +65,6 @@ void find_dequeable(unordered_set<string>& ds, Deque<T> in,
 		dq_new1.push_front(in_new1.pop_front());
 		dq_new2.push_back(in_new2.pop_front());
 
-		cout << "input size: " << in.size() << endl;
-
 		find_dequeable(ds, in_new1, dq_new1, out_new1);
 		find_dequeable(ds, in_new2, dq_new2, out_new2);
 	}
