@@ -7,8 +7,12 @@
 #include <algorithm>
 #include <iostream>
 #include <fstream>
+#include <vector>
+#include <set>
 
 using std::ofstream;
+using std::vector;
+using std::set;
 
 template<typename T>
 bool dequeable(Deque<T>& deque, T *set, T *s_end);
@@ -17,22 +21,22 @@ template<typename T>
 void printlist(ofstream& fp, T *start, T *end);
 
 int main(int argc, char *argv[]) {
-	int set[] = { 1, 2, 3, 4, 5 };
-	int *p;
-	Deque<int> test_deque(5);
 	ofstream file;
+	int vals[] = { 1, 2, 3, 4, 5 };
+	set<int> input(vals, vals+5);
+	vector< set<int> > perms;
 
 	file.open("output.txt");
-
-	for (p = set; p < set + 5; ++p)
-		test_deque.push_back(*p);
 //	cout << "is_set: " << test_deque.is_set(set, set+5) << endl;
 
 	do {
-		Deque<int> d(test_deque);
-		if (!dequeable(d, set, set+5))
-			printlist(file, set, set+5);
-	} while (std::next_permutation(set, set + 5));
+		perms.push_back(input);
+	} while (std::next_permutation(input.begin(), input.end()));
+
+	for (vector< set<int> >::iterator it = perms.begin(); 
+		it != perms.end(); ++it)
+		cout << *it << endl;
+	cout << "size = " << perms.size() << endl;
 
 	file.close();
 }
@@ -64,3 +68,6 @@ void printlist(ofstream& fp, T *start, T *end) {
 		fp << *p << " ";
 	fp << endl;
 }
+
+/* print a set */
+
