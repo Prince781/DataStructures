@@ -2,9 +2,8 @@
 #include <stdbool.h>
 #include <stdlib.h>	/* srand, rand */
 #include <time.h>
-#include <math.h>	/* pow */
 
-#define ITERS	100UL
+#define ITERS	10000000UL
 
 /* bad flip with non-uniform distribution */
 bool bad_flip(void);
@@ -27,8 +26,10 @@ int main(int argc, char *argv[]) {
 	printf("after %d iterations of flip(), avg = %f\n", n, avg);
 
 	avg = 0;
-	for (n=0; n<=ITERS; avg /= ++n)
+	for (n=0; n<=ITERS; avg /= ++n) {
 		avg = n*avg + flop(num, denom);
+		printf("iter %d / %d\n", n, ITERS);
+	}
 	
 	printf("after %d iterations of flop() with true prob (%f), avg = %f\n",
 		ITERS, (float)num / denom, avg);
@@ -47,15 +48,11 @@ bool flip(void) {
 }
 
 bool flop(int m, int n) {
-	bool val = false;
-	int i, f;
-	double e;
+	unsigned val = 0;
+	int p;
 
-	if (m == 0) return false;
-	else if (m == n) return true;
-	f = (int) ceil(e = (log((float)(m > n/2 ? (n-m) : m)/n) / log(0.5)));
-	for (i=f; i>0; --i)
+	for (p=0; p<8*sizeof(unsigned)-1; ++p, val <<= 1)
 		val |= flip();
-	val = m > n/2 ? val : !val;
-	return val;
+	
+	return (val <= ((float) m / n) * ~0u);
 }
