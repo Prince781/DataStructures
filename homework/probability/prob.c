@@ -15,8 +15,6 @@ bool flip(void);
 /* return true with probability m/n */
 bool flop(int m, int n);
 
-int gcd(int a, int b);
-
 int main(int argc, char *argv[]) {
 	double avg = 0;
 	unsigned long n;
@@ -53,9 +51,4 @@ bool flop(int m, int n) {
 	for (i=f; i>0; --i)
 		val |= flip();
 	return (m > n/2 ? val : !val);
-}
-
-int gcd(int a, int b) {
-	if (a == 0) return b;
-	return gcd(b%a, a);
 }
