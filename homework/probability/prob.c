@@ -21,10 +21,16 @@ int main(int argc, char *argv[]) {
 	int num = 300, denom = 1000;
 
 	srand(time(NULL));
+	for (n=0; n<ITERS; avg /= ++n)
+		avg = n*avg + flip();
+	
+	printf("after %d iterations of flip(), avg = %f\n", n, avg);
+
+	avg = 0;
 	for (n=0; n<=ITERS; avg /= ++n)
 		avg = n*avg + flop(num, denom);
 	
-	printf("after %d iterations with true prob (%f), avg = %f\n",
+	printf("after %d iterations of flop() with true prob (%f), avg = %f\n",
 		ITERS, (float)num / denom, avg);
 
 	return 0;
@@ -35,20 +41,21 @@ bool bad_flip(void) {
 }
 
 bool flip(void) {
-	bool r1, r2;
-
-	r1 = bad_flip();
-	r2 = bad_flip();
-	return (r1 ^ r2 ? r1 : flip());
+	bool r1;
+	while (!((r1 = bad_flip()) ^ bad_flip()));
+	return r1;
 }
 
 bool flop(int m, int n) {
-	bool val;
+	bool val = false;
 	int i, f;
+	double e;
 
-	val = false;
-	f = (int) ceil(log((float)(m > n/2 ? (n-m) : m)/n) / log(0.5));
+	if (m == 0) return false;
+	else if (m == n) return true;
+	f = (int) ceil(e = (log((float)(m > n/2 ? (n-m) : m)/n) / log(0.5)));
 	for (i=f; i>0; --i)
 		val |= flip();
-	return (m > n/2 ? val : !val);
+	val = m > n/2 ? val : !val;
+	return val;
 }
