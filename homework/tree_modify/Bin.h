@@ -80,6 +80,17 @@ void insert(Bin<T> *root, const T& t) {
 }
 
 template<class T>
+Bin<T>* rr(Bin<T> *root) {
+	if (root->l) {
+		Bin<T> *a = root->l;
+		root->l = root->l->r;
+		a->r = root;
+		return a;
+	} else
+		return root;
+}
+
+template<class T>
 Bin<T> *flip(Bin<T> *root, Bin<T>* (&retval)) {
 	int first;
 
