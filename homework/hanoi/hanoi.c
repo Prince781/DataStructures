@@ -6,7 +6,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #define TEST
-#undef TEST
 #define BUFFSIZE	(~0u >> 1)
 /*
  * Tower of Hanoi, with constraint that it is only possible to move between

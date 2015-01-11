@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include "graph.h"
 
+#define INDEX_SKEW (0)
+
 /* initializes all labels */
 static void graphviz_print_labels(Graph *g, FILE *fin,
 				  const char *pre, int skew);
@@ -69,6 +71,11 @@ void add_edge(Graph *g, int v1, int v2)
 		Vertex *vert2 = graph_get(g, v2);
 		llist_add(vert1->nbrs, vert2);	/* add v2 to v1's neighbors */
 		llist_add(vert2->parents, vert1); /* v2 is child of v1 */
+		int n = 40;
+		char vbuf1[n], vbuf2[n];
+		vertex_tostring(vert1, n, vbuf1, INDEX_SKEW);
+		vertex_tostring(vert2, n, vbuf2, INDEX_SKEW);
+		printf("%s: adding %s -> %s\n", __func__, vbuf1, vbuf2);
 	}
 }
 
@@ -79,7 +86,7 @@ void dfs(Graph *g, int vi, dfs_pass1 func, void *args[], struct stack *s_temp)
 	Vertex *v, *w;
 	int old_size;
 
-	if (vi <= -g->size || vi >= g->size)
+	if (vi < -g->size || vi > g->size)
 		return;
 	else if ((v = graph_get(g, vi)) == NULL)
 		return;
@@ -93,7 +100,8 @@ void dfs(Graph *g, int vi, dfs_pass1 func, void *args[], struct stack *s_temp)
 		v = stack_pop(s);
 		if (!v->seen) {
 			v->seen = 1;
-			if (s_temp != NULL)
+			if (s_temp != NULL
+			  && (stack_empty(s_temp) || v != stack_peek(s_temp)))
 				stack_push(s_temp, v);
 			llist_foreach(v->nbrs, el) {
 				w = el->data;
@@ -114,7 +122,7 @@ void dfs_trans(Graph *g, int vi, dfs_pass2 func, void *args[])
 	struct llist_elem *el;
 	Vertex *v, *w;
 
-	if (vi <= -g->size || vi >= g->size)
+	if (vi < -g->size || vi > g->size)
 		return;
 	else if ((v = graph_get(g, vi)) == NULL)
 		return;
@@ -157,17 +165,19 @@ static void graphviz_print_labels(Graph *g, FILE *fin,
 	int vi;
 	const int n = 40;
 	char buf1[n];
-
+	const char *filledstyle = ", style=filled, color=gray";
 	for (vi = 0; vi < g->size; ++vi) {
 		if ((v = g->vtrue[vi]) != NULL) {
 			vertex_tostring(v, n, buf1, skew);
-			fprintf(fin, "%s\"%s\" [label=<x<sub>%d</sub>>];\n",
-				pre, buf1, v->v + skew);
+			fprintf(fin, "%s\"%s\" [label=<x<sub>%d</sub>>%s];\n",
+				pre, buf1, v->v + skew,
+				v->seen ? filledstyle : "");
 		}
 		if ((v = g->vfalse[vi]) != NULL) {
 			vertex_tostring(v, n, buf1, skew);
-			fprintf(fin, "%s\"%s\" [label=<~x<sub>%d</sub>>];\n",
-				pre, buf1, -v->v + skew);
+			fprintf(fin, "%s\"%s\" [label=<~x<sub>%d</sub>>%s];\n",
+				pre, buf1, -v->v + skew,
+				v->seen ? filledstyle : "");
 		}
 	}
 }
@@ -205,12 +215,12 @@ static void graphviz_print_edges(Graph *g, FILE *fin,
 void graph_visualize(Graph *g, const char *fname)
 {
 	FILE *fin = fopen(fname, "w");
-	int skew = -1;
-
+	
 	fprintf(fin, "digraph G {\n");
-	graphviz_print_labels(g, fin, "\t", skew);
-	graphviz_print_edges(g, fin, "\t", skew);
+	graphviz_print_labels(g, fin, "\t", INDEX_SKEW);
+	graphviz_print_edges(g, fin, "\t", INDEX_SKEW);
 	fprintf(fin, "}\n");
+	
 	fclose(fin);
 }
 
@@ -222,7 +232,7 @@ void graph_visualize_sccs(Graph *g, const char *fname)
 	const int n = 40;
 	char vbuf[n], vbuf2[n];
 	SCC *comp;
-	int skew = -1;
+	const int skew = INDEX_SKEW;
 	struct stack *edges;	/* remaining edges outside of any SCCs */
 
 	if (g->sccs == NULL) {
@@ -266,6 +276,10 @@ void graph_visualize_sccs(Graph *g, const char *fname)
 					vbuf, vbuf2);
 			}
 		}
+		if (llist_empty(comp->verts)) {
+			vertex_tostring(comp->leader, n, vbuf, skew);
+			fprintf(fin, "\t\t\"%s\";\n", vbuf);
+		}
 		fprintf(fin, "\t\tlabel = \"SCC %d\";\n", comp->group + skew);
 		fprintf(fin, "\t}\n");
 	}
@@ -283,7 +297,6 @@ void graph_visualize_sccs(Graph *g, const char *fname)
 
 void graph_destroy(Graph *g)
 {
-	Vertex *vt, *vf;
 	int i;
 
 	for (i=0; i<g->size; ++i) {
@@ -344,7 +357,7 @@ void sccs_add_vertex(SCCS *comps, Vertex *v, int group)
 	/* otherwise, add new group if it doesn't exist */
 	comp = scc_new(group);
 	llist_add(comps->groups, comp);
-	if (v->v == group)
+	if (v->v == comp->group)
 		comp->leader = v;
 	else
 		llist_add(comp->verts, v);

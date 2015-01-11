@@ -18,6 +18,8 @@ void *stack_pop(struct stack *s);
 
 void *stack_peek(const struct stack *s);
 
+void *stack_get(const struct stack *s, int index);
+
 #define stack_empty(s) ((s)->top < 0)
 
 #define stack_full(s) ((s)->top >= (s)->maxsize - 1)

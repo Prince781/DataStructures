@@ -20,7 +20,6 @@ int main(int argc, char *argv[])
 	FILE *fin;
 	Graph *graph;
 	int nvals, nclauses;
-	int *atrue, *afalse;
 	int i, j, k;
 
 	fin = fopen("2sat.in", "r");
@@ -64,23 +63,37 @@ void get_sccs(Graph *g)
 	temp_stack = stack_new(maxsize);
 	components = sccs_new();
 	vi = 1;	/* current vertex */
-	args[0] = (void *) finished_stack;
-	args[1] = (void *) temp_stack;
-	args[2] = (void *) components;
+	args[0] = finished_stack;
+	args[1] = temp_stack;
+	args[2] = components;
 	for (vi=1; vi <= g->size; ++vi) {
 		dfs(g, vi, &pass1_func, args, temp_stack);
+		while (!stack_empty(temp_stack))
+			stack_push(finished_stack, stack_pop(temp_stack));
 		dfs(g, -vi, &pass1_func, args, temp_stack);
+		while (!stack_empty(temp_stack))
+			stack_push(finished_stack, stack_pop(temp_stack));
 	}
-	while (!stack_empty(temp_stack))
-		stack_push(finished_stack, stack_pop(temp_stack));
 	graph_reset(g);
+	/* debug: */
+	int i;
+	char vbuf[30];
+	printf("%s: finished stack:\n", __func__);
+	printf("%s: ======= bottom =======\n", __func__);
+	for (i=0; i<stack_size(finished_stack); ++i) {
+		vert = stack_get(finished_stack, i);
+		vertex_tostring(vert, 30, vbuf, 0);
+		printf("%s: stack(%d) = %s\n", __func__, i, vbuf);
+	}
+	printf("%s: =======  top   =======\n", __func__);
 	while (!stack_empty(finished_stack)) {
 		vert = stack_pop(finished_stack);
-		args[3] = (void *) &vert->v;
+		args[3] = &vert->v;
 		dfs_trans(g, vert->v, &pass2_func, args);
 	}
 	stack_destroy(finished_stack);
 	stack_destroy(temp_stack);
+	graph_reset(g);
 	g->sccs = components;
 }
 

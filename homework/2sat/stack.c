@@ -44,6 +44,15 @@ void *stack_peek(const struct stack *s)
 		return s->data[s->top];
 }
 
+void *stack_get(const struct stack *s, int index)
+{
+	if (index < 0 || index > s->top) {
+		fprintf(stderr, "%s: %d is out of range\n", __func__, index);
+		return NULL;
+	} else
+		return s->data[index];
+}
+
 static void stack_grow(struct stack *s, int addition)
 {
 	int nsize = s->maxsize + addition;
