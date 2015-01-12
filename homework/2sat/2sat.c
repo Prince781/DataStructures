@@ -43,15 +43,8 @@ int main(int argc, char *argv[])
 		clauses[i][1] = graph_get(graph, k);
 	}
 
-	printf("done adding edges\n");
 	get_sccs(graph);
-	printf("done getting sccs\n");
-	for (i = 1; i<=graph->size; ++i) {
-		printf("graph(%d) = %p\n", i, graph_get(graph, i));
-		printf("graph(%d) = %p\n", -i, graph_get(graph, -i));
-	}
 	graph_condense(graph);
-	printf("done condensing graph\n");
 
 	if (!graph_satisfiable(graph))
 		printf("Not satisfiable\n");

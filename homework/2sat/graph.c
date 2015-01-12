@@ -325,17 +325,8 @@ void graph_condense(Graph *g)
 		v = comp->leader;
 		llist_foreach(v->nbrs, el2) {
 			vnbr = el2->data;
-			printf("marco\n");
-			printf("el2 == %p\n", el2);
-			printf("el2->next == %p\n", el2->next);
-			printf("v: %p, vnbr: %p\n", v, vnbr);
-			fflush(stdout);
-			if (vertex_group(v) != vertex_group(vnbr)) {
-				printf("v id: %d\n", v->v);
-				printf("vnbr id: %d\n", vnbr->v);
+			if (vertex_group(v) != vertex_group(vnbr))
 				llist_add(comp->sccs, vnbr->scc);
-			}
-			printf("polo\n");
 		}
 		llist_foreach(comp->verts, el2) {
 			v = el2->data;

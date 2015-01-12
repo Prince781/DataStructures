@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
 		neg1 = rand() < RAND_MAX/2 ? -1 : 1;
 		neg2 = rand() < RAND_MAX/2 ? -1 : 1;
 		x1 = 1 + (v++ % nv);
-		x2 = 1 + (int)(((float)rand() / RAND_MAX) * nv);
+		x2 = 1 + (int)(((float)rand() / RAND_MAX) * (nv-1));
 		fprintf(fin, "%d %d\n", neg1*x1, neg2*x2);
 	}
 
