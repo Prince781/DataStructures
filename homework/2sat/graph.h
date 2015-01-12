@@ -7,12 +7,17 @@
 typedef struct vertex {
 	struct llist *nbrs;	/* neighbors */
 	struct llist *parents;	/* for transpose */
-	int v;		/* value */
+	int v;			/* vertex id */
 	char seen;		/* seen already or not? */
 	char finished;		/* finished expanding? */
+	int value;
+	void *scc;		/* what SCC group this vertex is in */
 } Vertex;
 
 Vertex *vertex_new(int val);
+
+/* only use this after getting SCCs */
+#define vertex_group(v) (((SCC *) (v)->scc)->group)
 
 /* skew: skew indices by a value */
 void vertex_tostring(Vertex *v, int n, char str[n], int skew);
@@ -24,6 +29,7 @@ typedef struct scc {
 	Vertex *leader;		/* vertex where v = group number; this is for
 				   easy access */
 	int group;	/* SCC number */
+	struct llist *sccs;	/* edges to other SCCs in this graph */
 } SCC;
 
 SCC *scc_new(int group);
@@ -86,6 +92,17 @@ void graph_visualize(Graph *g, const char *fname);
 /* generates a visualization of the graph, with
  * SCCS present */
 void graph_visualize_sccs(Graph *g, const char *fname);
+
+/* sets up edges between each SCC */
+void graph_condense(Graph *g);
+
+void graph_visualize_condensed(Graph *g, const char *fname);
+
+/* After performing SCC analysis on graph, check if each SCC does not
+ * contain a "conflict", that is, a path from x to !x.
+ * @note: returns nonzero if graph is satisfiable
+ */
+int graph_satisfiable(Graph *g);
 
 /* note: this destroys every vertex in the graph as well */
 void graph_destroy(Graph *g);

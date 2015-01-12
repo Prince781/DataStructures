@@ -3,6 +3,8 @@
 #include "graph.h"
 
 #define INDEX_SKEW (0)
+#define DEBUG
+
 
 /* initializes all labels */
 static void graphviz_print_labels(Graph *g, FILE *fin,
@@ -22,6 +24,7 @@ Vertex *vertex_new(int val)
 	vert->v = val;
 	vert->seen = 0;
 	vert->finished = 0;
+	vert->scc = NULL;
 
 	return vert;
 }
@@ -72,11 +75,13 @@ void add_edge(Graph *g, int v1, int v2)
 		Vertex *vert2 = graph_get(g, v2);
 		llist_add(vert1->nbrs, vert2);	/* add v2 to v1's neighbors */
 		llist_add(vert2->parents, vert1); /* v2 is child of v1 */
+#ifdef DEBUG
 		int n = 40;
 		char vbuf1[n], vbuf2[n];
 		vertex_tostring(vert1, n, vbuf1, INDEX_SKEW);
 		vertex_tostring(vert2, n, vbuf2, INDEX_SKEW);
 		printf("%s: adding %s -> %s\n", __func__, vbuf1, vbuf2);
+#endif
 	}
 }
 
@@ -250,8 +255,7 @@ void graph_visualize_sccs(Graph *g, const char *fname)
 		fprintf(fin, "\t\tstyle = filled;\n");
 		llist_foreach(comp->leader->nbrs, el2) {
 			vnbr = el2->data;
-			if (!llist_contains(comp->verts, vnbr)
-			   && vnbr != comp->leader) {
+			if (vertex_group(vnbr) != comp->group) {
 				stack_push(edges, comp->leader);
 				stack_push(edges, vnbr);
 				continue;
@@ -264,8 +268,7 @@ void graph_visualize_sccs(Graph *g, const char *fname)
 			v = el2->data;
 			llist_foreach(v->nbrs, el3) {
 				vnbr = el3->data;
-				if (!llist_contains(comp->verts, vnbr)
-				  && vnbr != comp->leader) {
+				if (vertex_group(vnbr) != comp->group) {
 					stack_push(edges, v);
 					stack_push(edges, vnbr);
 					continue;
@@ -295,6 +298,104 @@ void graph_visualize_sccs(Graph *g, const char *fname)
 	stack_destroy(edges);
 }
 
+void graph_condense(Graph *g)
+{
+	struct llist_elem *el, *el2, *el3;
+	SCC *comp;
+	Vertex *v, *vnbr;
+
+	if (g->sccs == NULL) {
+		fprintf(stderr, "%s: g->sccs == NULL\n", __func__);
+		return;
+	}
+	llist_foreach(g->sccs->groups, el) {
+		comp = el->data;
+		v = comp->leader;
+		llist_foreach(v->nbrs, el2) {
+			vnbr = el2->data;
+			if (vertex_group(v) != vertex_group(vnbr))
+				llist_add(comp->sccs, vnbr->scc);
+		}
+		llist_foreach(comp->verts, el2) {
+			v = el2->data;
+			llist_foreach(v->nbrs, el3) {
+				vnbr = el3->data;
+				if (vertex_group(v) != vertex_group(vnbr))
+					llist_add(comp->sccs, vnbr->scc);
+			}
+		}
+	}
+}
+
+void graph_visualize_condensed(Graph *g, const char *fname)
+{
+	FILE *fin = fopen(fname, "w");
+	struct llist_elem *el, *el2;
+	SCC *comp, *comp_nbr;
+	const int n = 40;
+	char vbuf[n];
+	Vertex *v;
+
+	if (g->sccs == NULL) {
+		fprintf(stderr, "%s: g->sccs == NULL\n", __func__);
+		fclose(fin);
+		return;
+	}
+	fprintf(fin, "digraph G {\n");
+	llist_foreach(g->sccs->groups, el) {
+		comp = el->data;
+		fprintf(fin, "\t\"SCC %d\" [label=<", comp->group);
+		v = comp->leader;
+		if (v->v < 0)
+			snprintf(vbuf, n, "~x<sub>%d</sub> ", -v->v);
+		else
+			snprintf(vbuf, n, "x<sub>%d</sub> ", v->v);
+		fprintf(fin, "%s", vbuf);
+		llist_foreach(comp->verts, el2) {
+			v = el2->data;
+			if (v->v < 0)
+				snprintf(vbuf, n, "~x<sub>%d</sub> ", -v->v);
+			else
+				snprintf(vbuf, n, "x<sub>%d</sub> ", v->v);
+			fprintf(fin, "%s", vbuf);
+		}
+		fprintf(fin, ">];\n");
+	}
+	llist_foreach(g->sccs->groups, el) {
+		comp = el->data;
+		llist_foreach(comp->sccs, el2) {
+			comp_nbr = el2->data;
+			fprintf(fin, "\t\"SCC %d\" -> \"SCC %d\";\n",
+				comp->group, comp_nbr->group);
+		}
+	}
+	fprintf(fin, "}\n");
+	fclose(fin);
+}
+
+int graph_satisfiable(Graph *g)
+{
+	struct llist_elem *el, *el2;
+	Vertex *v, *notv;
+	SCC *comp;
+
+	llist_foreach(g->sccs->groups, el) {
+		comp = el->data;
+		/* test leader first */
+		v = comp->leader;
+		notv = graph_get(g, -v->v);
+		if (vertex_group(v) == vertex_group(notv))
+			return 0;
+		llist_foreach(comp->verts, el2) {
+			v = el2->data;
+			notv = graph_get(g, -v->v);
+			if (vertex_group(v) == vertex_group(notv))
+				return 0;
+		}
+	}
+	return 1;
+}
+
 void graph_destroy(Graph *g)
 {
 	int i;
@@ -320,11 +421,13 @@ SCC *scc_new(int group)
 	comp = malloc(sizeof(SCC));
 	comp->verts = llist_new();
 	comp->group = group;
+	comp->sccs = llist_new();
 	return comp;
 }
 
 void scc_destroy(SCC *comp)
 {
+	llist_destroy(comp->sccs);
 	llist_destroy(comp->verts);
 	free(comp);
 }
@@ -351,6 +454,7 @@ void sccs_add_vertex(SCCS *comps, Vertex *v, int group)
 				comp->leader = v;
 			else
 				llist_add(comp->verts, v);
+			v->scc = comp;
 			return;
 		}
 	}
@@ -361,6 +465,7 @@ void sccs_add_vertex(SCCS *comps, Vertex *v, int group)
 		comp->leader = v;
 	else
 		llist_add(comp->verts, v);
+	v->scc = comp;
 }
 
 SCC *sccs_get(SCCS *comps, int group)

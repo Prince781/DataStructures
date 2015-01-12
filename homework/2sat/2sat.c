@@ -5,6 +5,7 @@
  */
 #include <stdio.h>
 #include "graph.h"
+#define DEBUG
 
 const void *NOARGS[0];
 
@@ -33,7 +34,13 @@ int main(int argc, char *argv[])
 
 	graph_visualize(graph, "graph_visual.dot");
 	get_sccs(graph);
+	graph_condense(graph);
 	graph_visualize_sccs(graph, "graph_sccs_visual.dot");
+	graph_visualize_condensed(graph, "graph_condensed_visual.dot");
+
+	if (!graph_satisfiable(graph))
+		printf("Not satisfiable\n");
+	// else
 
 	graph_destroy(graph);
 	fclose(fin);
@@ -85,7 +92,7 @@ void get_sccs(Graph *g)
 		}
 	}
 	graph_reset(g);
-	/* debug: */
+#ifdef DEBUG
 	int i;
 	char vbuf[30];
 	printf("%s: finished stack:\n", __func__);
@@ -96,6 +103,7 @@ void get_sccs(Graph *g)
 		printf("%s: stack(%d) = %s\n", __func__, i, vbuf);
 	}
 	printf("%s: =======  top   =======\n", __func__);
+#endif
 	while (!stack_empty(finished_stack)) {
 		vert = stack_pop(finished_stack);
 		args[3] = &vert->v;
