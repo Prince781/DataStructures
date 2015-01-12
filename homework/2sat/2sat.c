@@ -60,12 +60,13 @@ int main(int argc, char *argv[])
 			v = graph_get(graph, i);
 			printf("%c\n", v->value);
 		}
-#ifdef DEBUG_GRAPHS
-		graph_visualize(graph, "graph_visual.dot");
-		graph_visualize_sccs(graph, "graph_sccs_visual.dot");
-		graph_visualize_condensed(graph, "graph_condensed_visual.dot");
-#endif
 	}
+
+#ifdef DEBUG_GRAPHS
+	graph_visualize(graph, "graph_visual.dot");
+	graph_visualize_sccs(graph, "graph_sccs_visual.dot");
+	graph_visualize_condensed(graph, "graph_condensed_visual.dot");
+#endif
 
 	free(clauses);
 	graph_destroy(graph);
