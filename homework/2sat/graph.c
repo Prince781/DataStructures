@@ -110,6 +110,7 @@ void dfs(Graph *g, int vi, dfs_pass1 func, void *args[], struct stack *s_temp)
 				stack_push(s_temp, v);
 			llist_foreach(v->nbrs, el) {
 				w = el->data;
+				if (w == v) continue;
 				stack_push(s, w);
 				if (s_temp != NULL)
 					stack_push(s_temp, w);
@@ -144,6 +145,7 @@ void dfs_trans(Graph *g, int vi, dfs_pass2 func, void *args[])
 				(*func)(v, args);
 			llist_foreach(v->parents, el) {
 				w = el->data;
+				if (w == v) continue;
 				stack_push(s, w);
 			}
 		}

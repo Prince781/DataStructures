@@ -58,7 +58,8 @@ int main(int argc, char *argv[])
 			       " Guess I need to improve this... :(\n");
 		for (i=1; i<=graph->size; ++i) {
 			v = graph_get(graph, i);
-			printf("%c\n", v->value);
+			if (v != NULL)
+				printf("%c\n", v->value);
 		}
 	}
 

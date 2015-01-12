@@ -17,13 +17,14 @@ int main(int argc, char *argv[])
 	int nc = atoi(argv[3]);
 	int i, neg1, neg2;
 	int x1, x2;
+	int v = 0;
 
 	fprintf(fin, "%d %d\n", nv, nc);
 	srand(time(NULL));
 	for (i=0; i<nc; ++i) {
 		neg1 = rand() < RAND_MAX/2 ? -1 : 1;
 		neg2 = rand() < RAND_MAX/2 ? -1 : 1;
-		x1 = 1 + (int)(((float)rand() / RAND_MAX) * nv);
+		x1 = 1 + (v++ % nv);
 		x2 = 1 + (int)(((float)rand() / RAND_MAX) * nv);
 		fprintf(fin, "%d %d\n", neg1*x1, neg2*x2);
 	}
