@@ -10,5 +10,8 @@ all:
 $(GRAPHS): %.png : %.dot
 	$(DOT) -Tpng $< -o $@
 
-clean:
-	$(RM) 2sat_main $(GRAPHS) $(GRAPHFILES)
+clean_graphs:
+	$(RM) $(GRAPHS) $(GRAPHFILES)
+
+clean: clean_graphs
+	$(RM) 2sat_main
