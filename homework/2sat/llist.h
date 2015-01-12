@@ -11,13 +11,13 @@ struct llist_elem {
 /* singly-linked list */
 struct llist {
 	struct llist_elem *base;
+	struct llist_elem **head;
 	int size;
 };
 
 struct llist *llist_new(void);
 
-/* returns bool: if added */
-int llist_add(struct llist *ll, void *elem);
+void llist_add(struct llist *ll, void *elem);
 
 /* returns bool: if removed */
 int llist_remove(struct llist *ll, void *elem);

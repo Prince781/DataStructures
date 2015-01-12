@@ -86,8 +86,9 @@ void get_sccs(Graph *g)
 	int maxsize = g->elems;
 	int vi;
 	Vertex *vert;
-	void *args[4];
+	void *args[3];
 	SCCS *components;
+	SCC *comp;
 
 	/* idea: transfer temp_stack items to finished_stack
 	 * when internal DFS stack decreases in size */
@@ -97,7 +98,6 @@ void get_sccs(Graph *g)
 	vi = 1;	/* current vertex */
 	args[0] = finished_stack;
 	args[1] = temp_stack;
-	args[2] = components;
 	for (vi=1; vi <= g->size; ++vi) {
 		dfs(g, vi, &pass1_func, args, temp_stack);
 		while (!stack_empty(temp_stack)) {
@@ -131,7 +131,11 @@ void get_sccs(Graph *g)
 #endif
 	while (!stack_empty(finished_stack)) {
 		vert = stack_pop(finished_stack);
-		args[3] = &vert->v;
+		if (vert->seen) continue;
+		vert->scc = comp = scc_new(vert->v);
+		comp->leader = vert;
+		args[2] = comp;
+		llist_add(components->groups, comp);
 		dfs_trans(g, vert->v, &pass2_func, args);
 	}
 	stack_destroy(finished_stack);
@@ -164,13 +168,14 @@ static void pass2_func(Vertex *v, void *args[])
 {
 	/* args[0] = finished_stack
 	 * args[1] = temp_stack
-	 * args[2] = SCCS
-	 * args[3] = scc group number
+	 * args[2] = SCC
 	 */
-	SCCS *components = args[2];
-	int group = *(int *) args[3];
+	SCC *component = args[2];
 
-	sccs_add_vertex(components, v, group);
+	if (v != component->leader) {
+		llist_add(component->verts, v);
+		v->scc = component;
+	}
 }
 
 /* after condensing graph, assign truth values

@@ -7,32 +7,26 @@ struct llist *llist_new(void)
 	struct llist *ll;
 
 	if ((ll = malloc(sizeof(struct llist))) == NULL) {
-		fprintf(stderr, "%s: could not create list\n");
+		fprintf(stderr, "%s: could not create list\n", __func__);
 		return NULL;
 	}
 	ll->base = NULL;
+	ll->head = &ll->base;
 	ll->size = 0;
 
 	return ll;
 }
 
-int llist_add(struct llist *ll, void *elem)
+void llist_add(struct llist *ll, void *elem)
 {
-	struct llist_elem **lleptr;
+	struct llist_elem *lle;
 
-	for (lleptr = &ll->base; *lleptr != NULL; lleptr = &(*lleptr)->next)
-		if ((*lleptr)->data == elem)
-			return 0;
-	
-	if ((*lleptr = malloc(sizeof(struct llist_elem))) == NULL) {
-		fprintf(stderr, "%s: could not create element\n", __func__);
-		return 0;
-	}
-	(*lleptr)->data = elem;
-	(*lleptr)->next = NULL;
-	ll->size++;
-
-	return 1;
+	lle = malloc(sizeof(struct llist_elem));
+	lle->data = elem;
+	lle->next = NULL;
+	*ll->head = lle;
+	ll->head = &lle->next;
+	++ll->size;
 }
 
 int llist_remove(struct llist *ll, void *elem)
@@ -47,10 +41,12 @@ int llist_remove(struct llist *ll, void *elem)
 	if (*lleptr == NULL)
 		return 0;
 
+	if (&(*lleptr)->next == ll->head)
+		ll->head = lleptr;
 	llelem = *lleptr;
 	*lleptr = (*lleptr)->next;
 	free(llelem);
-	ll->size--;
+	--ll->size;
 
 	return 1;
 }

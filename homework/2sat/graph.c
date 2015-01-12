@@ -73,8 +73,10 @@ void add_edge(Graph *g, int v1, int v2)
 		}
 		Vertex *vert1 = graph_get(g, v1);
 		Vertex *vert2 = graph_get(g, v2);
-		llist_add(vert1->nbrs, vert2);	/* add v2 to v1's neighbors */
-		llist_add(vert2->parents, vert1); /* v2 is child of v1 */
+		if (!llist_contains(vert1->nbrs, vert2))
+			llist_add(vert1->nbrs, vert2);	/* add v2 to v1's neighbors */
+		if (!llist_contains(vert2->parents, vert1))
+			llist_add(vert2->parents, vert1); /* v2 is child of v1 */
 #ifdef DEBUG
 		int n = 40;
 		char vbuf1[n], vbuf2[n];
