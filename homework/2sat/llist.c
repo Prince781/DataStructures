@@ -6,7 +6,7 @@ struct llist *llist_new(void)
 {
 	struct llist *ll;
 
-	if ((ll = malloc(sizeof(struct llist))) == NULL) {
+	if ((ll = malloc(sizeof(*ll))) == NULL) {
 		fprintf(stderr, "%s: could not create list\n", __func__);
 		return NULL;
 	}
@@ -21,7 +21,7 @@ void llist_add(struct llist *ll, void *elem)
 {
 	struct llist_elem *lle;
 
-	lle = malloc(sizeof(struct llist_elem));
+	lle = malloc(sizeof(*lle));
 	lle->data = elem;
 	lle->next = NULL;
 	*ll->head = lle;

@@ -44,8 +44,6 @@ SCCS *sccs_new(void);
 
 #define sccs_size(sccs) ((sccs)->groups->size)
 
-void sccs_add_vertex(SCCS *comps, Vertex *v, int group);
-
 SCC *sccs_get(SCCS *comps, int group);
 
 /* note: does NOT free vertices */

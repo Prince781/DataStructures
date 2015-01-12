@@ -58,7 +58,7 @@ static void stack_grow(struct stack *s, int addition)
 	int nsize = s->maxsize + addition;
 	void *p;
 
-	if ((p = realloc(s->data, nsize * sizeof(void *))) == NULL)
+	if ((p = realloc(s->data, nsize * sizeof(*s->data))) == NULL)
 		fprintf(stderr, "%s: could not resize stack (%d => %d)\n",
 			__func__, s->maxsize, nsize);
 	else {

@@ -18,7 +18,10 @@ Vertex *vertex_new(int val)
 {
 	Vertex *vert;
 
-	vert = malloc(sizeof(Vertex));
+	if ((vert = malloc(sizeof(*vert))) == NULL) {
+		fprintf(stderr, "%s: could not allocate new vertex\n", __func__);
+		return NULL;
+	}
 	vert->nbrs = llist_new();
 	vert->parents = llist_new();
 	vert->v = val;
@@ -48,9 +51,12 @@ Graph *graph_new(int size)
 {
 	Graph *g;
 
-	g = malloc(sizeof(Graph));
-	g->vtrue = calloc(size, sizeof(Vertex *));
-	g->vfalse = calloc(size, sizeof(Vertex *));
+	if ((g = malloc(sizeof(*g))) == NULL) {
+		fprintf(stderr, "%s: could not allocate new graph\n", __func__);
+		return NULL;
+	}
+	g->vtrue = calloc(size, sizeof(*g->vtrue));
+	g->vfalse = calloc(size, sizeof(*g->vfalse));
 	g->size = size;
 	g->elems = 0;
 	g->sccs = NULL;
@@ -319,8 +325,17 @@ void graph_condense(Graph *g)
 		v = comp->leader;
 		llist_foreach(v->nbrs, el2) {
 			vnbr = el2->data;
-			if (vertex_group(v) != vertex_group(vnbr))
+			printf("marco\n");
+			printf("el2 == %p\n", el2);
+			printf("el2->next == %p\n", el2->next);
+			printf("v: %p, vnbr: %p\n", v, vnbr);
+			fflush(stdout);
+			if (vertex_group(v) != vertex_group(vnbr)) {
+				printf("v id: %d\n", v->v);
+				printf("vnbr id: %d\n", vnbr->v);
 				llist_add(comp->sccs, vnbr->scc);
+			}
+			printf("polo\n");
 		}
 		llist_foreach(comp->verts, el2) {
 			v = el2->data;
@@ -429,10 +444,14 @@ SCC *scc_new(int group)
 {
 	SCC *comp;
 
-	comp = malloc(sizeof(SCC));
+	if ((comp = malloc(sizeof(*comp))) == NULL) {
+		fprintf(stderr, "%s: could not allocate new SCC\n", __func__);
+		return NULL;
+	}
 	comp->verts = llist_new();
 	comp->group = group;
 	comp->sccs = llist_new();
+	comp->leader = NULL;
 	return comp;
 }
 
@@ -447,36 +466,13 @@ SCCS *sccs_new(void)
 {
 	SCCS *comps;
 
-	comps = malloc(sizeof(SCCS));
+	if ((comps = malloc(sizeof(*comps))) == NULL) {
+		fprintf(stderr, "%s: could not allocate new SCCS\n", __func__);
+		return NULL;
+	}
 	comps->groups = llist_new();
 
 	return comps;
-}
-
-void sccs_add_vertex(SCCS *comps, Vertex *v, int group)
-{
-	struct llist_elem *el;
-	SCC *comp;
-
-	llist_foreach(comps->groups, el) {
-		comp = el->data;
-		if (comp->group == group) {
-			if (v->v == comp->group)
-				comp->leader = v;
-			else
-				llist_add(comp->verts, v);
-			v->scc = comp;
-			return;
-		}
-	}
-	/* otherwise, add new group if it doesn't exist */
-	comp = scc_new(group);
-	llist_add(comps->groups, comp);
-	if (v->v == comp->group)
-		comp->leader = v;
-	else
-		llist_add(comp->verts, v);
-	v->scc = comp;
 }
 
 SCC *sccs_get(SCCS *comps, int group)
@@ -489,6 +485,7 @@ SCC *sccs_get(SCCS *comps, int group)
 		if (comp->group == group)
 			return comp;
 	}
+	return NULL;
 }
 
 void sccs_destroy(SCCS *comps)

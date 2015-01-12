@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include "graph.h"
 // #define DEBUG
-#define DEBUG_GRAPHS
+// #define DEBUG_GRAPHS
 
 #define VERT_TRUE	'T'
 #define VERT_FALSE	'F'
@@ -43,8 +43,15 @@ int main(int argc, char *argv[])
 		clauses[i][1] = graph_get(graph, k);
 	}
 
+	printf("done adding edges\n");
 	get_sccs(graph);
+	printf("done getting sccs\n");
+	for (i = 1; i<=graph->size; ++i) {
+		printf("graph(%d) = %p\n", i, graph_get(graph, i));
+		printf("graph(%d) = %p\n", -i, graph_get(graph, -i));
+	}
 	graph_condense(graph);
+	printf("done condensing graph\n");
 
 	if (!graph_satisfiable(graph))
 		printf("Not satisfiable\n");
@@ -173,8 +180,8 @@ static void pass2_func(Vertex *v, void *args[])
 	SCC *component = args[2];
 
 	if (v != component->leader) {
-		llist_add(component->verts, v);
 		v->scc = component;
+		llist_add(component->verts, v);
 	}
 }
 
