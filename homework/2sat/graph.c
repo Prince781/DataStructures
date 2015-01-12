@@ -21,6 +21,7 @@ Vertex *vertex_new(int val)
 	vert->parents = llist_new();
 	vert->v = val;
 	vert->seen = 0;
+	vert->finished = 0;
 
 	return vert;
 }
@@ -100,18 +101,17 @@ void dfs(Graph *g, int vi, dfs_pass1 func, void *args[], struct stack *s_temp)
 		v = stack_pop(s);
 		if (!v->seen) {
 			v->seen = 1;
-			if (s_temp != NULL
-			  && (stack_empty(s_temp) || v != stack_peek(s_temp)))
+			if (s_temp != NULL)
 				stack_push(s_temp, v);
 			llist_foreach(v->nbrs, el) {
 				w = el->data;
 				stack_push(s, w);
-				if (s_temp != NULL && !llelem_islast(el))
+				if (s_temp != NULL)
 					stack_push(s_temp, w);
 			}
-			if (func != NULL)
-				(*func)(v, args, old_size, s);
 		}
+		if (func != NULL)
+			(*func)(v, args, old_size, s);
 	}
 	stack_destroy(s);
 }
@@ -152,9 +152,9 @@ void graph_reset(Graph *g)
 
 	for (i=0; i<g->size; ++i) {
 		if (g->vtrue[i] != NULL)
-			g->vtrue[i]->seen = 0;
+			g->vtrue[i]->seen = g->vtrue[i]->finished = 0;
 		if (g->vfalse[i] != NULL)
-			g->vfalse[i]->seen = 0;
+			g->vfalse[i]->seen = g->vfalse[i]->finished = 0;
 	}
 }
 

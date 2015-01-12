@@ -68,11 +68,21 @@ void get_sccs(Graph *g)
 	args[2] = components;
 	for (vi=1; vi <= g->size; ++vi) {
 		dfs(g, vi, &pass1_func, args, temp_stack);
-		while (!stack_empty(temp_stack))
-			stack_push(finished_stack, stack_pop(temp_stack));
+		while (!stack_empty(temp_stack)) {
+			vert = stack_pop(temp_stack);
+			if (!vert->finished) {
+				stack_push(finished_stack, vert);
+				vert->finished = 1;
+			}
+		}
 		dfs(g, -vi, &pass1_func, args, temp_stack);
-		while (!stack_empty(temp_stack))
-			stack_push(finished_stack, stack_pop(temp_stack));
+		while (!stack_empty(temp_stack)) {
+			vert = stack_pop(temp_stack);
+			if (!vert->finished) {
+				stack_push(finished_stack, vert);
+				vert->finished = 1;
+			}
+		}
 	}
 	graph_reset(g);
 	/* debug: */
@@ -104,11 +114,17 @@ static void pass1_func(Vertex *v, void *args[], int old_size,
 	 * args[1] = temp_stack */
 	struct stack *finished = args[0];
 	struct stack *temp = args[1];
+	Vertex *vert;
 
 	if (old_size > stack_size(internal_stack))
 		while (!stack_empty(temp) && !stack_empty(internal_stack) 
-			&& stack_peek(temp) != stack_peek(internal_stack))
-			stack_push(finished, stack_pop(temp));
+			&& stack_peek(temp) != stack_peek(internal_stack)) {
+			vert = stack_pop(temp);
+			if (!vert->finished) {
+				stack_push(finished, vert);
+				vert->finished = 1;
+			}
+		}
 }
 
 static void pass2_func(Vertex *v, void *args[])

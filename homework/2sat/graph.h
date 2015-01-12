@@ -9,6 +9,7 @@ typedef struct vertex {
 	struct llist *parents;	/* for transpose */
 	int v;		/* value */
 	char seen;		/* seen already or not? */
+	char finished;		/* finished expanding? */
 } Vertex;
 
 Vertex *vertex_new(int val);
