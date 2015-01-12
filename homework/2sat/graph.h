@@ -10,7 +10,7 @@ typedef struct vertex {
 	int v;			/* vertex id */
 	char seen;		/* seen already or not? */
 	char finished;		/* finished expanding? */
-	int value;
+	char value;
 	void *scc;		/* what SCC group this vertex is in */
 } Vertex;
 

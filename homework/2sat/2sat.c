@@ -4,8 +4,13 @@
  * 1-12-15
  */
 #include <stdio.h>
+#include <stdlib.h>
 #include "graph.h"
-#define DEBUG
+// #define DEBUG
+#define DEBUG_GRAPHS
+
+#define VERT_TRUE	'T'
+#define VERT_FALSE	'F'
 
 const void *NOARGS[0];
 
@@ -16,32 +21,53 @@ static void pass1_func(Vertex *v, void *args[], int has_shrunken,
 
 static void pass2_func(Vertex *v, void *args[]);
 
+void assign_values(Graph *g);
+
+int clauses_test(Vertex *(*clauses)[2], int nc);
+
 int main(int argc, char *argv[])
 {
 	FILE *fin;
 	Graph *graph;
 	int nvals, nclauses;
+	Vertex *(*clauses)[2];
 	int i, j, k;
 
 	fin = fopen("2sat.in", "r");
 	fscanf(fin, "%d %d", &nvals, &nclauses);
 	graph = graph_new(nvals);
+	clauses = malloc(nclauses * sizeof(Vertex *[2]));
 	for (i=0; i<nclauses; ++i) {
 		fscanf(fin, "%d %d", &j, &k);
 		add_edge(graph, -k, j);
 		add_edge(graph, -j, k);
+		clauses[i][0] = graph_get(graph, j);
+		clauses[i][1] = graph_get(graph, k);
 	}
 
-	graph_visualize(graph, "graph_visual.dot");
 	get_sccs(graph);
 	graph_condense(graph);
-	graph_visualize_sccs(graph, "graph_sccs_visual.dot");
-	graph_visualize_condensed(graph, "graph_condensed_visual.dot");
 
 	if (!graph_satisfiable(graph))
 		printf("Not satisfiable\n");
-	// else
+	else {
+		Vertex *v;
+		assign_values(graph);
+		if (!clauses_test(clauses, nclauses))
+			printf("Failed to find solution."
+			       " Guess I need to improve this... :(\n");
+		for (i=1; i<=graph->size; ++i) {
+			v = graph_get(graph, i);
+			printf("%c\n", v->value);
+		}
+#ifdef DEBUG_GRAPHS
+		graph_visualize(graph, "graph_visual.dot");
+		graph_visualize_sccs(graph, "graph_sccs_visual.dot");
+		graph_visualize_condensed(graph, "graph_condensed_visual.dot");
+#endif
+	}
 
+	free(clauses);
 	graph_destroy(graph);
 	fclose(fin);
 	return 0;
@@ -146,4 +172,45 @@ static void pass2_func(Vertex *v, void *args[])
 	int group = *(int *) args[3];
 
 	sccs_add_vertex(components, v, group);
+}
+
+/* after condensing graph, assign truth values
+ * to each vertex */
+void assign_values(Graph *g)
+{
+	struct llist_elem *el, *el2;
+	SCC *comp;
+	Vertex *v, *notv;
+
+	llist_foreach(g->sccs->groups, el) {
+		comp = el->data;
+		v = comp->leader;
+		if (v->value == VERT_TRUE || v->value == VERT_FALSE)
+			continue;
+		notv = graph_get(g, -v->v);
+		v->value = VERT_FALSE;
+		notv->value = VERT_TRUE;
+		llist_foreach(comp->verts, el2) {
+			v = el2->data;
+			notv = graph_get(g, -v->v);
+			v->value = VERT_FALSE;
+			notv->value = VERT_TRUE;
+		}
+	}
+}
+
+/* test that our truth assignments are valid */
+int clauses_test(Vertex *(*clauses)[2], int nc)
+{
+	char val = 1;
+	Vertex *v1, *v2;
+	int i;
+
+	for (i=0; i<nc && val; ++i) {
+		v1 = clauses[i][0];
+		v2 = clauses[i][1];
+		val &= (v1->value == VERT_TRUE || v2->value == VERT_TRUE);
+	}
+
+	return val;
 }

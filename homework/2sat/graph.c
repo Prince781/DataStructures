@@ -3,7 +3,7 @@
 #include "graph.h"
 
 #define INDEX_SKEW (0)
-#define DEBUG
+// #define DEBUG
 
 
 /* initializes all labels */
@@ -174,14 +174,16 @@ static void graphviz_print_labels(Graph *g, FILE *fin,
 	for (vi = 0; vi < g->size; ++vi) {
 		if ((v = g->vtrue[vi]) != NULL) {
 			vertex_tostring(v, n, buf1, skew);
-			fprintf(fin, "%s\"%s\" [label=<x<sub>%d</sub>>%s];\n",
+			fprintf(fin, "%s\"%s\" [label=<x<sub>%d</sub>%c>%s];\n",
 				pre, buf1, v->v + skew,
+				v->value != 0 ? v->value : ' ',
 				v->seen ? filledstyle : "");
 		}
 		if ((v = g->vfalse[vi]) != NULL) {
 			vertex_tostring(v, n, buf1, skew);
-			fprintf(fin, "%s\"%s\" [label=<~x<sub>%d</sub>>%s];\n",
+			fprintf(fin, "%s\"%s\" [label=<~x<sub>%d</sub>%c>%s];\n",
 				pre, buf1, -v->v + skew,
+				v->value != 0 ? v->value : ' ',
 				v->seen ? filledstyle : "");
 		}
 	}
@@ -344,19 +346,24 @@ void graph_visualize_condensed(Graph *g, const char *fname)
 	fprintf(fin, "digraph G {\n");
 	llist_foreach(g->sccs->groups, el) {
 		comp = el->data;
-		fprintf(fin, "\t\"SCC %d\" [label=<", comp->group);
+		fprintf(fin, "\t\"SCC %d\" [label=<SCC %d:<br/> ",
+			comp->group, comp->group);
 		v = comp->leader;
 		if (v->v < 0)
-			snprintf(vbuf, n, "~x<sub>%d</sub> ", -v->v);
+			snprintf(vbuf, n, "~x<sub>%d</sub>%c ", -v->v,
+				 v->value != 0 ? v->value : ' ');
 		else
-			snprintf(vbuf, n, "x<sub>%d</sub> ", v->v);
+			snprintf(vbuf, n, "x<sub>%d</sub>%c ", v->v,
+				 v->value != 0 ? v->value : ' ');
 		fprintf(fin, "%s", vbuf);
 		llist_foreach(comp->verts, el2) {
 			v = el2->data;
 			if (v->v < 0)
-				snprintf(vbuf, n, "~x<sub>%d</sub> ", -v->v);
+				snprintf(vbuf, n, "~x<sub>%d</sub>%c ", -v->v,
+					 v->value != 0 ? v->value : ' ');
 			else
-				snprintf(vbuf, n, "x<sub>%d</sub> ", v->v);
+				snprintf(vbuf, n, "x<sub>%d</sub>%c ", v->v,
+					 v->value != 0 ? v->value : ' ');
 			fprintf(fin, "%s", vbuf);
 		}
 		fprintf(fin, ">];\n");
