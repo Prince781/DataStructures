@@ -27,18 +27,16 @@ int clauses_test(Vertex *(*clauses)[2], int nc);
 
 int main(int argc, char *argv[])
 {
-	FILE *fin;
 	Graph *graph;
 	int nvals, nclauses;
 	Vertex *(*clauses)[2];
 	int i, j, k;
 
-	fin = fopen("2sat.in", "r");
-	fscanf(fin, "%d %d", &nvals, &nclauses);
+	scanf("%d %d", &nvals, &nclauses);
 	graph = graph_new(nvals);
 	clauses = malloc(nclauses * sizeof(Vertex *[2]));
 	for (i=0; i<nclauses; ++i) {
-		fscanf(fin, "%d %d", &j, &k);
+		scanf("%d %d", &j, &k);
 		add_edge(graph, -k, j);
 		add_edge(graph, -j, k);
 		clauses[i][0] = graph_get(graph, j);
@@ -71,7 +69,6 @@ int main(int argc, char *argv[])
 
 	free(clauses);
 	graph_destroy(graph);
-	fclose(fin);
 	return 0;
 }
 
