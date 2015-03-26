@@ -3,7 +3,6 @@
 #include <string.h>
 #include <errno.h>
 #include <sys/types.h>
-#include <malloc.h>
 
 #define TAPESIZE 1024
 #define HALT	-1
@@ -144,7 +143,6 @@ void tm_init(struct TM *tm, int init_state, int loc, const char *tape)
 	tm->cur_state = init_state;
 	tm->loc = loc;
 	tm->tape = strdup(tape);
-
 }
 
 int tm_step(struct TM *tm)
@@ -160,6 +158,10 @@ int tm_step(struct TM *tm)
 		printf("1. %s\n", tm->tape);
 	}
 
+	if (tm->tape[tm->loc] == '\0') {
+		fprintf(stderr, "%s: accessing memory out of tape bounds\n", __func__);
+		abort();
+	}
 	tm->tape[tm->loc] = next.new_sym;
 	tm->loc += next.new_dir;
 	if (debug)
